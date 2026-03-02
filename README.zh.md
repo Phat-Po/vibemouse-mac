@@ -1,0 +1,287 @@
+# VibeMouse 🎙️
+
+[![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-blue?logo=python)](https://www.python.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green)](LICENSE)
+[![Platform: macOS](https://img.shields.io/badge/Platform-macOS-lightgrey?logo=apple)](https://www.apple.com/macos/)
+[![Powered by faster-whisper](https://img.shields.io/badge/STT-faster--whisper-orange)](https://github.com/SYSTRAN/faster-whisper)
+
+**按住按键说话，松开即转文字** — 适用于 macOS 的本地语音输入工具
+
+> 由 [faster-whisper](https://github.com/SYSTRAN/faster-whisper) 驱动，完全离线运行，无 API 费用，支持中英混合输入。
+
+📖 [English Documentation](README.md)
+
+---
+
+## ✨ 功能特点
+
+| | |
+|---|---|
+| 🎤 | 按住右 Option ⌥ 录音，松手自动转录并粘贴 |
+| 🔁 | 免提模式：同时按 Option + Command 开关持续录音 |
+| 🌍 | 支持中文、英文及 90+ 种语言 |
+| 💾 | 完全本地运行，首次下载模型后无需联网 |
+| 📋 | 转录结果自动复制到剪贴板并粘贴至当前应用 |
+| 🔧 | 交互式安装向导，中英双语 |
+| 🚀 | 支持开机自启（macOS LaunchAgent） |
+| ⌨️ | 可自定义快捷键 |
+
+---
+
+## 📋 系统要求
+
+- **macOS** 12 Monterey 或更高版本
+- **Python 3.10+**（推荐通过 Homebrew 安装）
+- **麦克风**
+- 系统权限：**辅助功能** + **输入监控**
+
+---
+
+## 📦 安装方式
+
+### 方式一：克隆并安装（推荐）
+
+```bash
+git clone https://github.com/Phat-Po/vibemouse-mac.git
+cd vibemouse-mac
+
+python3 -m venv .venv
+source .venv/bin/activate
+
+pip install -e .
+```
+
+### 方式二：直接从 GitHub 安装
+
+```bash
+pip install git+https://github.com/Phat-Po/vibemouse-mac.git
+```
+
+> **注意**：首次转录时会自动从 HuggingFace 下载所选的 Whisper 模型（需要网络）。后续完全离线运行。
+
+---
+
+## 🚀 快速开始
+
+### 首次运行
+
+```bash
+vibemouse
+```
+
+首次运行会自动启动安装向导，引导你完成：
+
+1. **界面语言** — 中文 / English
+2. **转录语言** — 中文 / 英文 / 混合 / 其他
+3. **Whisper 模型** — base / small / large-v3-turbo
+4. **快捷键** — 使用默认或自定义
+5. **系统权限** — 逐步引导开启
+
+### 之后每次使用
+
+VibeMouse 在后台运行，不需要打开任何窗口。
+
+| 操作 | 快捷键 |
+|---|---|
+| 开始录音 | 按住右 Option ⌥ |
+| 停止并转录 | 松开右 Option ⌥ |
+| 免提模式开/关 | 右 Option ⌥ + 右 Command ⌘ |
+
+---
+
+## ⌨️ 快捷键
+
+默认快捷键：
+
+```
+右 Option ⌥  （按住）         →  开始录音
+右 Option ⌥  （松开）         →  停止录音 + 自动转录 + 粘贴
+右 Option ⌥  + 右 Command ⌘  →  免提模式开/关
+```
+
+可通过 `vibemouse setup` 自定义快捷键。
+
+---
+
+## 🔧 配置
+
+### 重新配置
+
+```bash
+vibemouse setup
+```
+
+### 配置文件
+
+配置保存在 `~/.config/vibemouse/config.json`，可手动编辑：
+
+```json
+{
+  "ui_language": "zh",
+  "transcribe_language": "auto",
+  "model_size": "small",
+  "hold_key": "alt_r",
+  "handsfree_keys": ["alt_r", "cmd_r"]
+}
+```
+
+### 模型选项
+
+| 模型 | 大小 | 适用场景 |
+|---|---|---|
+| `base` | ~141 MB | 低配设备，速度优先 |
+| `small` | ~464 MB | **推荐 ⭐** 速度与准确度平衡 |
+| `large-v3-turbo` | ~1.5 GB | 最高准确度 |
+
+---
+
+## 🔒 系统权限
+
+VibeMouse 需要两个 macOS 系统权限：
+
+### 1. 输入监控
+用于监听快捷键。
+
+**系统设置 → 隐私与安全性 → 输入监控**
+
+### 2. 辅助功能
+用于将转录文字粘贴到当前应用。
+
+**系统设置 → 隐私与安全性 → 辅助功能**
+
+在两处均将 **Python.app** 添加到列表并开启开关。
+
+Python.app 的路径通常为：
+```
+/opt/homebrew/Cellar/python@3.xx/x.x.x/Frameworks/Python.framework/Versions/3.xx/Resources/Python.app
+```
+
+---
+
+## 🚀 开机自启
+
+将 VibeMouse 设置为开机自启（macOS LaunchAgent）：
+
+```bash
+# 1. 在本地安装（不依赖外置磁盘）
+mkdir -p ~/Library/Application\ Support/vibemouse
+python3 -m venv ~/Library/Application\ Support/vibemouse/venv
+~/Library/Application\ Support/vibemouse/venv/bin/pip install git+https://github.com/Phat-Po/vibemouse-mac.git
+
+# 2. 创建 LaunchAgent
+cat > ~/Library/LaunchAgents/com.vibemouse.plist << 'EOF'
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.vibemouse</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/Users/YOUR_USERNAME/Library/Application Support/vibemouse/venv/bin/vibemouse</string>
+    </array>
+    <key>KeepAlive</key>
+    <true/>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>StandardOutPath</key>
+    <string>/tmp/vibemouse.log</string>
+    <key>StandardErrorPath</key>
+    <string>/tmp/vibemouse.log</string>
+</dict>
+</plist>
+EOF
+
+# 将 YOUR_USERNAME 替换为你的用户名
+
+# 3. 注册服务
+launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.vibemouse.plist
+```
+
+---
+
+## 🛠️ 故障排查
+
+```bash
+vibemouse help
+```
+
+自动检查以下项目：
+
+- ✅ 后台进程状态
+- ✅ 辅助功能权限
+- ✅ 输入监控权限
+- ✅ 音频输入设备
+- ✅ Whisper 模型文件
+- ✅ 配置文件
+
+### 常见问题
+
+**按快捷键没有任何反应**
+→ 检查输入监控权限
+→ 运行 `vibemouse help` 查看详情
+
+**转录结果没有粘贴**
+→ 检查辅助功能权限
+
+**服务未启动**
+```bash
+launchctl list | grep vibemouse
+cat /tmp/vibemouse.log
+```
+
+**查看实时日志**
+```bash
+tail -f /tmp/vibemouse.log
+```
+
+**重启服务**
+```bash
+launchctl kickstart -k gui/$(id -u)/com.vibemouse
+```
+
+---
+
+## 🛠️ 开发
+
+```bash
+git clone https://github.com/Phat-Po/vibemouse-mac.git
+cd vibemouse-mac
+python3 -m venv .venv && source .venv/bin/activate
+pip install -e .
+
+vibemouse        # 直接运行
+vibemouse setup  # 重新配置
+vibemouse help   # 故障排查
+```
+
+项目结构：
+
+```
+vibemouse_mac/
+├── main.py               # 入口，CLI 路由
+├── config.py             # 配置读写（JSON + 环境变量）
+├── i18n.py               # 中英文字符串字典
+├── keyboard_listener.py  # 按住模式 + 免提模式逻辑
+├── audio.py              # 音频录制（sounddevice）
+├── transcriber.py        # Whisper 语音转文字（faster-whisper）
+├── output.py             # 文字注入（剪贴板 + AppleScript）
+├── setup_wizard.py       # 交互式终端安装向导
+└── help_cmd.py           # 故障排查工具
+```
+
+---
+
+## 📄 License
+
+MIT © 2026 [Phat-Po](https://github.com/Phat-Po)
+
+---
+
+<div align="center">
+
+Built with [faster-whisper](https://github.com/SYSTRAN/faster-whisper) · [pynput](https://github.com/moses-palmer/pynput) · [sounddevice](https://python-sounddevice.readthedocs.io/)
+
+如果这个项目对你有帮助，欢迎点个 ⭐ Star！
+
+</div>
