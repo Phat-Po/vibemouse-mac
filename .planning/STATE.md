@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: planning
-stopped_at: Phase 1 context gathered
-last_updated: "2026-03-08T21:25:05.477Z"
+status: in-progress
+stopped_at: Completed 01-threading-foundation-01-PLAN.md
+last_updated: "2026-03-08T22:05:17.374Z"
 last_activity: 2026-03-09 — Roadmap created
 progress:
   total_phases: 4
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
+  total_plans: 2
+  completed_plans: 1
+  percent: 50
 ---
 
 # Project State
@@ -26,28 +26,28 @@ See: .planning/PROJECT.md (updated 2026-03-09)
 ## Current Position
 
 Phase: 1 of 4 (Threading Foundation)
-Plan: 0 of 2 in current phase
-Status: Ready to plan
-Last activity: 2026-03-09 — Roadmap created
+Plan: 1 of 2 in current phase
+Status: In progress
+Last activity: 2026-03-09 — Completed plan 01-01 (overlay scaffold + tests)
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [█████░░░░░] 50%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 0
-- Average duration: -
-- Total execution time: 0 hours
+- Total plans completed: 1
+- Average duration: 3 min
+- Total execution time: 0.05 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| - | - | - | - |
+| Phase 01-threading-foundation P01 | 3 min | 2 tasks | 4 files |
 
 **Recent Trend:**
-- Last 5 plans: -
-- Trend: -
+- Last 5 plans: 3 min
+- Trend: baseline
 
 *Updated after each plan completion*
 
@@ -61,6 +61,9 @@ Recent decisions affecting current work:
 - [Pre-Phase 1]: Use PyObjC/AppKit (NSPanel) for overlay — tkinter cannot do transparent windows on macOS
 - [Pre-Phase 1]: NSApplicationActivationPolicyAccessory must be set before NSApp.run() to prevent focus steal
 - [Pre-Phase 1]: All UI calls must go through dispatch_to_main() — calling AppKit from background thread causes silent crash
+- [Phase 01-threading-foundation]: Mock callAfter via whisperkey_mac.overlay.callAfter (import site) not PyObjCTools.AppHelper.callAfter — from-import binds name locally
+- [Phase 01-threading-foundation]: Plain Python class wrapper for NSPanel — no ObjC subclass needed; NSWindowStyleMaskNonactivatingPanel must be set at init time
+- [Phase 01-threading-foundation]: Panel positioned at final coordinates in Phase 1 (alpha=0) so Phase 3 only animates alpha
 
 ### Pending Todos
 
@@ -73,6 +76,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-08T21:25:05.473Z
-Stopped at: Phase 1 context gathered
-Resume file: .planning/phases/01-threading-foundation/01-CONTEXT.md
+Last session: 2026-03-08T22:05:17.368Z
+Stopped at: Completed 01-threading-foundation-01-PLAN.md
+Resume file: None

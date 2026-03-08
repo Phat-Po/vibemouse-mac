@@ -7,9 +7,9 @@
 
 ### Overlay Foundation
 
-- [ ] **OVL-01**: 录音中，屏幕底部居中显示半透明圆角浮层（NSPanel，常驻最顶层，点击穿透）
-- [ ] **OVL-02**: 浮层出现时不抢夺焦点，不打断用户当前文字输入
-- [ ] **OVL-03**: 浮层在所有 Space 可见（Mission Control 切换不消失）
+- [x] **OVL-01**: 录音中，屏幕底部居中显示半透明圆角浮层（NSPanel，常驻最顶层，点击穿透）
+- [x] **OVL-02**: 浮层出现时不抢夺焦点，不打断用户当前文字输入
+- [x] **OVL-03**: 浮层在所有 Space 可见（Mission Control 切换不消失）
 
 ### Recording State
 
@@ -57,9 +57,9 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| OVL-01 | Phase 1 | Pending |
-| OVL-02 | Phase 1 | Pending |
-| OVL-03 | Phase 1 | Pending |
+| OVL-01 | Phase 1 | Complete |
+| OVL-02 | Phase 1 | Complete |
+| OVL-03 | Phase 1 | Complete |
 | REC-01 | Phase 3 | Pending |
 | REC-02 | Phase 3 | Pending |
 | TRN-01 | Phase 3 | Pending |
@@ -78,4 +78,4 @@
 
 ---
 *Requirements defined: 2026-03-09*
-*Last updated: 2026-03-09 after initial definition*
+*Last updated: 2026-03-09 — traceability confirmed after roadmap creation*
