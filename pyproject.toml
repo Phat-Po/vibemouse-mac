@@ -16,6 +16,7 @@ dependencies = [
     "pyperclip>=1.8",
     "opencc-python-reimplemented>=0.1",
     "rich>=13.0",
+    "pyobjc-framework-Cocoa>=10.0",
 ]
 
 [project.scripts]

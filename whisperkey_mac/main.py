@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import signal
 import sys
 import threading
 
@@ -37,34 +36,56 @@ class App:
         print(f"[whisperkey] {_('starting')}")
         threading.Thread(target=self._transcriber._ensure_loaded, daemon=True).start()
 
-        self._hotkey.start()
-
         # Build hotkey display
         hk_hold = cfg.hold_key
         hk_hf = " + ".join(cfg.handsfree_keys)
+
+        # Set up NSApp BEFORE starting threads or importing AppKit elsewhere.
+        # AppKit imports are confined to overlay.py to prevent activation policy side effects.
+        import signal as _signal
+        from AppKit import NSApplication, NSApplicationActivationPolicyAccessory
+        from PyObjCTools import MachSignals
+        from whisperkey_mac.overlay import OverlayPanel
+
+        app = NSApplication.sharedApplication()
+        # CRITICAL: setActivationPolicy_ BEFORE .run() — policy is committed at run() time.
+        app.setActivationPolicy_(NSApplicationActivationPolicyAccessory)
+
+        # MachSignals delivers signals via Mach port inside NSApp.run().
+        # Python signal.signal() is unreliable while blocked in C code (NSApp.run()).
+        _sig_name_holder: list[str] = []
+
+        def _quit(signum: int) -> None:
+            try:
+                _sig_name_holder.append(_signal.Signals(signum).name)
+            except Exception:
+                _sig_name_holder.append(str(signum))
+            from AppKit import NSApp as _NSApp
+            _NSApp().terminate_(None)
+
+        MachSignals.signal(_signal.SIGINT, _quit)
+        MachSignals.signal(_signal.SIGTERM, _quit)
+        MachSignals.signal(_signal.SIGHUP, _quit)
+
+        self._hotkey.start()
 
         print(
             f"[whisperkey] {_('ready')}\n"
             f"  {_('model_label')}: {cfg.model_size} ({cfg.compute_type} on {cfg.device})\n"
             f"  {_('language_label')}: {cfg.transcribe_language if cfg.transcribe_language != 'auto' else _('auto_detect')}\n"
-            f"  {hk_hold:<20} → {_('hold_record')} / {_('release_transcribe')}\n"
-            f"  {hk_hf:<20} → {_('handsfree_start')} / {_('handsfree_stop')}\n"
+            f"  {hk_hold:<20} -> {_('hold_record')} / {_('release_transcribe')}\n"
+            f"  {hk_hf:<20} -> {_('handsfree_start')} / {_('handsfree_stop')}\n"
             f"  {_('quit_hint')}\n"
         )
 
-        stop_event = threading.Event()
-        _sig_received: list[int] = []
+        # Phase 1: create invisible overlay. Phase 2 wires it to state machine.
+        self._overlay = OverlayPanel.create()
 
-        def _handle(signum: int, _frame: object) -> None:
-            _sig_received.append(signum)
-            stop_event.set()
+        # Block on Cocoa run loop. Returns only when terminate_() is called.
+        app.run()
 
-        signal.signal(signal.SIGINT, _handle)
-        signal.signal(signal.SIGTERM, _handle)
-        signal.signal(signal.SIGHUP, _handle)
-        stop_event.wait()
-
-        sig_name = signal.Signals(_sig_received[0]).name if _sig_received else "?"
+        # Cleanup after run loop exits
+        sig_name = _sig_name_holder[0] if _sig_name_holder else "SIGTERM"
         print(f"\n[whisperkey] {_('shutting_down')} ({sig_name})")
         self._hotkey.stop()
         self._recorder.cancel()
