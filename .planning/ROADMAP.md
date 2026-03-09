@@ -12,7 +12,7 @@ This roadmap delivers a floating visual overlay to the existing WhisperKey dicta
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Threading Foundation** - Replace stop_event.wait() with NSApp run loop; invisible NSPanel correctly configured; all existing threads intact
+- [x] **Phase 1: Threading Foundation** - Replace stop_event.wait() with NSApp run loop; invisible NSPanel correctly configured; all existing threads intact
 - [ ] **Phase 2: State Machine & Thread Wiring** - Connect worker threads to overlay states; branch logic (paste vs clipboard); auto-dismiss timer
 - [ ] **Phase 3: Visual Polish & Animation** - Waveform bars, pulsing dots, fade transitions, result text — all at specified timings
 - [ ] **Phase 4: Edge Cases & Hardening** - Rapid keypress guards, NSTimer leak prevention, LaunchAgent boot verification
@@ -31,8 +31,8 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans**: 2 plans
 
 Plans:
-- [ ] 01-01-PLAN.md — Create overlay.py (OverlayPanel + dispatch_to_main) and pytest scaffold (Wave 1)
-- [ ] 01-02-PLAN.md — Wire NSApp.run() into main.py replacing stop_event.wait(); declare pyobjc dep; smoke test (Wave 2)
+- [x] 01-01-PLAN.md — Create overlay.py (OverlayPanel + dispatch_to_main) and pytest scaffold (Wave 1)
+- [x] 01-02-PLAN.md — Wire NSApp.run() into main.py replacing stop_event.wait(); declare pyobjc dep; smoke test (Wave 2)
 
 ### Phase 2: State Machine & Thread Wiring
 **Goal**: Overlay responds correctly to the full hotkey lifecycle — press shows overlay, release transitions to transcribing state, transcription completion routes to paste-or-clipboard branch and auto-dismisses
@@ -85,7 +85,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Threading Foundation | 1/2 | In Progress|  |
+| 1. Threading Foundation | 2/2 | Complete | 2026-03-09 |
 | 2. State Machine & Thread Wiring | 0/2 | Not started | - |
 | 3. Visual Polish & Animation | 0/2 | Not started | - |
 | 4. Edge Cases & Hardening | 0/1 | Not started | - |
