@@ -44,28 +44,43 @@ class App:
         # AppKit imports are confined to overlay.py to prevent activation policy side effects.
         import signal as _signal
         from AppKit import NSApplication, NSApplicationActivationPolicyAccessory
-        from PyObjCTools import MachSignals
+        from PyObjCTools.AppHelper import callLater
         from whisperkey_mac.overlay import OverlayPanel
 
         app = NSApplication.sharedApplication()
         # CRITICAL: setActivationPolicy_ BEFORE .run() — policy is committed at run() time.
         app.setActivationPolicy_(NSApplicationActivationPolicyAccessory)
 
-        # MachSignals delivers signals via Mach port inside NSApp.run().
-        # Python signal.signal() is unreliable while blocked in C code (NSApp.run()).
+        # Signal handling via callLater polling timer.
+        #
+        # Why not MachSignals / try/except KeyboardInterrupt:
+        # NSApp.run() blocks Python's bytecode interpreter in C — Python's signal flag
+        # is set when Ctrl+C arrives but is never checked (no bytecodes execute).
+        # MachSignals similarly can't fire because it relies on the same mechanism.
+        #
+        # Solution: callLater fires a Python callback every 200 ms *inside* the run loop.
+        # Those callbacks execute Python bytecode, so Python's pending signals ARE checked
+        # there. signal.signal() also prevents SIG_DFL from killing the process immediately.
         _sig_name_holder: list[str] = []
 
-        def _quit(signum: int) -> None:
+        def _handle_signal(signum: int, _frame: object) -> None:
             try:
                 _sig_name_holder.append(_signal.Signals(signum).name)
             except Exception:
                 _sig_name_holder.append(str(signum))
-            from AppKit import NSApp as _NSApp
-            _NSApp().terminate_(None)
 
-        MachSignals.signal(_signal.SIGINT, _quit)
-        MachSignals.signal(_signal.SIGTERM, _quit)
-        MachSignals.signal(_signal.SIGHUP, _quit)
+        _signal.signal(_signal.SIGINT, _handle_signal)
+        _signal.signal(_signal.SIGTERM, _handle_signal)
+        _signal.signal(_signal.SIGHUP, _handle_signal)
+
+        def _check_quit() -> None:
+            if _sig_name_holder:
+                from AppKit import NSApp as _NSApp
+                _NSApp().terminate_(None)
+            else:
+                callLater(0.2, _check_quit)
+
+        callLater(0.2, _check_quit)
 
         self._hotkey.start()
 
@@ -81,13 +96,8 @@ class App:
         # Phase 1: create invisible overlay. Phase 2 wires it to state machine.
         self._overlay = OverlayPanel.create()
 
-        # Block on Cocoa run loop. Returns only when terminate_() is called.
-        # KeyboardInterrupt fallback: if MachSignals doesn't intercept Ctrl+C first,
-        # Python raises KeyboardInterrupt — catch it so cleanup always runs.
-        try:
-            app.run()
-        except KeyboardInterrupt:
-            _sig_name_holder.append("SIGINT")
+        # Block on Cocoa run loop. Returns when _check_quit calls terminate_().
+        app.run()
 
         # Cleanup after run loop exits
         sig_name = _sig_name_holder[0] if _sig_name_holder else "SIGTERM"
