@@ -1,6 +1,8 @@
-"""Unit tests for whisperkey_mac.overlay — OVL-01, OVL-02, OVL-03 structural checks.
+"""Unit tests for whisperkey_mac.overlay — OVL-01, OVL-02, OVL-03 structural checks
+and RST-01 through RST-04 state machine tests.
 
-Tests verify NSPanel flags, position, transparency, and dispatch_to_main wiring.
+Tests verify NSPanel flags, position, transparency, dispatch_to_main wiring,
+and OverlayStateMachine state transitions with mocked NSPanel.
 No app.run() is called — panel is created and inspected directly.
 """
 import unittest.mock
@@ -16,7 +18,7 @@ from AppKit import (
     NSScreen,
 )
 
-from whisperkey_mac.overlay import OverlayPanel, dispatch_to_main
+from whisperkey_mac.overlay import OverlayPanel, OverlayState, OverlayStateMachine, dispatch_to_main
 
 
 @pytest.fixture(scope="module")
@@ -93,3 +95,106 @@ def test_dispatch_to_main():
     with unittest.mock.patch("whisperkey_mac.overlay.callAfter") as mock_call_after:
         dispatch_to_main(sentinel, arg1)
         mock_call_after.assert_called_once_with(sentinel, arg1)
+
+
+# ---------------------------------------------------------------------------
+# State Machine Tests (RST-01 through RST-04, transition guard)
+# ---------------------------------------------------------------------------
+
+@pytest.fixture
+def sm():
+    """Create an OverlayStateMachine with mocked NSPanel, label, sublabel.
+
+    Patches callLater at the overlay module level so no NSRunLoop is needed.
+    Returns (state_machine, mock_panel, mock_label, mock_sublabel).
+    """
+    mock_panel = unittest.mock.MagicMock()
+    mock_label = unittest.mock.MagicMock()
+    mock_sublabel = unittest.mock.MagicMock()
+    machine = OverlayStateMachine(mock_panel, mock_label, mock_sublabel)
+    return machine, mock_panel, mock_label, mock_sublabel
+
+
+def test_show_recording_transitions_to_recording(sm):
+    """RST-01: show_recording() from HIDDEN transitions state to RECORDING."""
+    machine, mock_panel, mock_label, mock_sublabel = sm
+    assert machine._state == OverlayState.HIDDEN
+    with unittest.mock.patch("whisperkey_mac.overlay.callLater"):
+        machine.show_recording()
+    assert machine._state == OverlayState.RECORDING
+
+
+def test_show_transcribing_transitions(sm):
+    """RST-01: show_transcribing() after show_recording() transitions to TRANSCRIBING."""
+    machine, mock_panel, mock_label, mock_sublabel = sm
+    with unittest.mock.patch("whisperkey_mac.overlay.callLater"):
+        machine.show_recording()
+        machine.show_transcribing()
+    assert machine._state == OverlayState.TRANSCRIBING
+
+
+def test_hide_after_paste(sm):
+    """RST-01: hide_after_paste() from TRANSCRIBING forces state to HIDDEN and calls orderOut_."""
+    machine, mock_panel, mock_label, mock_sublabel = sm
+    with unittest.mock.patch("whisperkey_mac.overlay.callLater"):
+        machine.show_recording()
+        machine.show_transcribing()
+        machine.hide_after_paste()
+    assert machine._state == OverlayState.HIDDEN
+    mock_panel.orderOut_.assert_called()
+
+
+def test_show_result_sets_label(sm):
+    """RST-02: show_result(text) sets the primary label to the transcribed text."""
+    machine, mock_panel, mock_label, mock_sublabel = sm
+    with unittest.mock.patch("whisperkey_mac.overlay.callLater"):
+        machine.show_recording()
+        machine.show_transcribing()
+        machine.show_result("hello")
+    mock_label.setStringValue_.assert_called_with("hello")
+
+
+def test_show_result_clipboard_hint(sm):
+    """RST-03: show_result() sets secondary label to '已复制到剪贴板'."""
+    machine, mock_panel, mock_label, mock_sublabel = sm
+    with unittest.mock.patch("whisperkey_mac.overlay.callLater"):
+        machine.show_recording()
+        machine.show_transcribing()
+        machine.show_result("hello")
+    mock_sublabel.setStringValue_.assert_called_with("已复制到剪贴板")
+
+
+def test_auto_dismiss_fires(sm):
+    """RST-04: _auto_dismiss(gen=current gen) from RESULT state transitions to HIDDEN."""
+    machine, mock_panel, mock_label, mock_sublabel = sm
+    with unittest.mock.patch("whisperkey_mac.overlay.callLater"):
+        machine.show_recording()
+        machine.show_transcribing()
+        machine.show_result("test")
+    assert machine._state == OverlayState.RESULT
+    current_gen = machine._dismiss_gen
+    machine._auto_dismiss(current_gen)
+    assert machine._state == OverlayState.HIDDEN
+
+
+def test_auto_dismiss_stale_ignored(sm):
+    """RST-04: _auto_dismiss(gen=stale) does not change state from RESULT."""
+    machine, mock_panel, mock_label, mock_sublabel = sm
+    with unittest.mock.patch("whisperkey_mac.overlay.callLater"):
+        machine.show_recording()
+        machine.show_transcribing()
+        machine.show_result("test")
+    assert machine._state == OverlayState.RESULT
+    stale_gen = machine._dismiss_gen - 1
+    machine._auto_dismiss(stale_gen)
+    assert machine._state == OverlayState.RESULT
+
+
+def test_transition_guard_rejects_invalid(sm):
+    """Transition guard: calling show_recording() twice keeps state at RECORDING (no corruption)."""
+    machine, mock_panel, mock_label, mock_sublabel = sm
+    with unittest.mock.patch("whisperkey_mac.overlay.callLater"):
+        machine.show_recording()
+        assert machine._state == OverlayState.RECORDING
+        machine.show_recording()  # second call while RECORDING — should be rejected
+    assert machine._state == OverlayState.RECORDING
