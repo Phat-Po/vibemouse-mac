@@ -44,11 +44,11 @@ Plans:
   3. When transcription completes and cursor is not in a text input field, the overlay shows the transcribed text and "已复制到剪贴板", then auto-dismisses after 3 seconds
   4. Accessibility API failure or None result defaults to the clipboard path without crashing
   5. State machine rejects invalid transitions — a second hotkey press mid-transcription does not corrupt overlay state
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 02-01: Implement 4-state machine (hidden → recording → transcribing → result → hidden) with valid-transition guards; wire keyboard_listener and transcriber via dispatch_to_main()
-- [ ] 02-02: Implement is_cursor_in_text_field() using AX API on worker thread; paste vs clipboard branch logic; auto-dismiss timer using NSTimer
+- [ ] 02-01-PLAN.md — State machine (OverlayState enum + OverlayStateMachine), content view (NSVisualEffectView), AX detect module, unit tests (Wave 1)
+- [ ] 02-02-PLAN.md — Wire keyboard callbacks and transcription branch to overlay; paste vs clipboard branch in main.py (Wave 2)
 
 ### Phase 3: Visual Polish & Animation
 **Goal**: Overlay displays waveform bars during recording, pulsing dots during transcribing, and result text in the clipboard branch — all with the exact animation timings from the spec
