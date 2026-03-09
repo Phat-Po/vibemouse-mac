@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 01-threading-foundation-02-PLAN.md
-last_updated: "2026-03-09T08:14:32.033Z"
+stopped_at: Completed 02-state-machine-thread-wiring-01-PLAN.md
+last_updated: "2026-03-09T09:10:30.044Z"
 last_activity: 2026-03-09 — Completed Phase 1 (plans 01-01 and 01-02)
 progress:
   total_phases: 4
   completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
+  total_plans: 4
+  completed_plans: 3
   percent: 25
 ---
 
@@ -51,6 +51,7 @@ Progress: [██░░░░░░░░] 25%
 - Trend: baseline
 
 *Updated after each plan completion*
+| Phase 02-state-machine-thread-wiring P01 | 10 | 3 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -69,6 +70,10 @@ Recent decisions affecting current work:
 - [Phase 01-threading-foundation P02]: All AppKit imports confined to inside App.run() to prevent activation policy side effects
 - [Phase 01-threading-foundation P02]: Ctrl+C shutdown message accepted as known issue — pynput subprocess os._exit() bypasses all Python cleanup; functional exit is correct
 - [Phase 01-threading-foundation P02]: stderr=subprocess.DEVNULL added to osascript to suppress accessibility error noise
+- [Phase 02-state-machine-thread-wiring]: OverlayStateMachine standalone class (not nested) — testable with mock panel/labels injected at construction
+- [Phase 02-state-machine-thread-wiring]: hide_after_paste() force-sets HIDDEN bypassing guard — paste path skips RESULT entirely; no TRANSCRIBING->HIDDEN in guard dict
+- [Phase 02-state-machine-thread-wiring]: String literal 'AXSearchField' in _TEXT_INPUT_ROLES — kAXSearchFieldRole does NOT exist as importable constant in PyObjC 12.1
+- [Phase 02-state-machine-thread-wiring]: callLater patched at whisperkey_mac.overlay.callLater (import site) in tests — consistent with Phase 1 callAfter pattern
 
 ### Pending Todos
 
@@ -80,6 +85,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-09
-Stopped at: Completed 01-threading-foundation-02-PLAN.md
+Last session: 2026-03-09T09:10:30.041Z
+Stopped at: Completed 02-state-machine-thread-wiring-01-PLAN.md
 Resume file: None

@@ -86,6 +86,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Threading Foundation | 2/2 | Complete | 2026-03-09 |
-| 2. State Machine & Thread Wiring | 0/2 | Not started | - |
+| 2. State Machine & Thread Wiring | 1/2 | In Progress|  |
 | 3. Visual Polish & Animation | 0/2 | Not started | - |
 | 4. Edge Cases & Hardening | 0/1 | Not started | - |
